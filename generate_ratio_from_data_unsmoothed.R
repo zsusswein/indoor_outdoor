@@ -4,9 +4,6 @@
 ###########
 # Libraries
 
-library(mgcv)
-library(broom)
-library(purrr)
 library(tidyverse)
 library(lubridate)
 
