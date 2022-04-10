@@ -1,4 +1,4 @@
-# This file generates the fitted curves to each of the four identified clusters
+# This file generates the fitted sine curves to each county with individual models at the state level
 
 ##################
 # Libraries
@@ -13,18 +13,13 @@ library(mgcv)
 ##################s
 # Read in data
 
-clusters <- read_csv('data/community_structure_2019_90_imputeddata_Nov10.csv') %>% 
-  rename(fips = node) %>% 
-  mutate(fips = as.double(fips))
-
 df.fips <- read_csv('data/state_and_county_fips_master.csv') %>% 
   mutate(fips = if_else(fips ==02270, 02158, fips),
          fips = if_else(fips == 46113, 46102, fips))
 
-df.full <- read_csv('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.csv') %>% 
+df.full <- read_csv('data/indoor_outdoor_ratio_unsmoothed.csv') %>% 
   left_join(df.fips) %>% 
-  left_join(clusters) %>% 
-  filter(!is.na(fips), !is.na(state), !is.na(week), !is.na(modularity_class)) %>% 
+  filter(!is.na(fips), !is.na(state), !is.na(week)) %>% 
   group_by(fips) %>% 
   arrange(week) %>%
   mutate(t = row_number()) %>% 
@@ -35,9 +30,11 @@ df.full <- read_csv('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.csv') 
 # Fit sine curve estimates 
 
 params <- df.full %>% 
-  nest(data = -modularity_class) %>% 
-  mutate(fit = map(data, ~ nls(r_raw ~ A*sin(omega*t+phi)+C, 
+  nest(data = -state) %>% 
+  mutate(fit = map(data, ~ nlme(r_raw ~ A*sin(omega*t+phi)+C, 
                                data=.x, 
+                               fixed = A + omega + phi + C ~ 1,
+                               random = A + omega + phi ~ 1,
                                start=c(A=.25,omega=.127,phi=1,C=.98))),
          tidied = map(fit, tidy),
          preds = map(fit, predict, newdata = tibble(t=1:182)))

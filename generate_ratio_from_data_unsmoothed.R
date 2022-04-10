@@ -126,7 +126,6 @@ df.r <- df %>%
   filter(!(fips %in% f)) %>% 
   mutate(r = (raw_visitor_counts_Indoors/indoor_max_2019)/(raw_visitor_counts_Outdoor/outdoor_max_2019)) %>% 
   full_join(df.neighbors) %>% 
-  mutate(r = r / mean(r, na.rm=T)) %>% 
   full_join(df.fips %>% filter(!is.na(state)))%>% 
   complete(week, fips) %>%
   select(-state, -name) %>% 
@@ -134,7 +133,10 @@ df.r <- df %>%
   #group_by(date) %>% 
   #mutate(z = (r - mean(r, na.rm=T)) / sd(r, na.rm=T)) %>% 
   select(week, fips, r) %>% 
-  filter(!is.na(week), !is.na(fips))
+  filter(!is.na(week), !is.na(fips)) %>% 
+  group_by(fips) %>% 
+  mutate(r = r / mean(r, na.rm=T)) %>% 
+  ungroup()
 
 df.r.weighted.dwell <- df %>% 
   filter(!(fips %in% f)) %>% 
@@ -154,5 +156,5 @@ df.r.weighted.dwell <- df %>%
 
 df.final <- full_join(df.r %>% rename(r_raw = r), df.r.weighted.dwell %>% rename(r_weighted_dwell = r))
 
-write_csv(df.final, 'data/indoor_outdoor_ratio_unsmoothed.csv')
+write_csv(df.final, 'data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.csv')
 
