@@ -6,6 +6,7 @@
 
 library(tidyverse)
 library(lubridate)
+library(arrow)
 
 ############
 # Set path to raw data from SafeGraph
@@ -156,5 +157,5 @@ df.r.weighted.dwell <- df %>%
 
 df.final <- full_join(df.r %>% rename(r_raw = r), df.r.weighted.dwell %>% rename(r_weighted_dwell = r))
 
-write_csv(df.final, 'data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.csv')
+write_parquet(df.final, 'data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet')
 

@@ -9,19 +9,20 @@ library(lme4)
 library(nlme)
 library(broom.mixed)
 library(mgcv)
+library(arrow)
 
 ##################s
 # Read in data
 
-clusters <- read_csv('data/community_structure_2019_90_imputeddata_Nov10.csv') %>% 
+clusters <- read_parquet('data/community_structure_2019_90_imputeddata_Nov10.parquet') %>% 
   rename(fips = node) %>% 
   mutate(fips = as.double(fips))
 
-df.fips <- read_csv('data/state_and_county_fips_master.csv') %>% 
+df.fips <- read_parquet('data/state_and_county_fips_master.parquet') %>% 
   mutate(fips = if_else(fips ==02270, 02158, fips),
          fips = if_else(fips == 46113, 46102, fips))
 
-df.full <- read_csv('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.csv') %>% 
+df.full <- read_parquet('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet') %>% 
   left_join(df.fips) %>% 
   left_join(clusters) %>% 
   filter(!is.na(fips), !is.na(state), !is.na(week), !is.na(modularity_class)) %>% 
@@ -48,7 +49,7 @@ params <- df.full %>%
 params %>% 
   select(modularity_class, tidied) %>% 
   unnest(tidied) %>% 
-  write_csv('data/sine_curve_cluster_fits.csv')
+  write_parquet('data/sine_curve_cluster_fits.parquet')
 
 params %>% 
   select(modularity_class, preds) %>% 
@@ -57,7 +58,7 @@ params %>%
   mutate(t = row_number()) %>% 
   ungroup() %>% 
   left_join(df.full %>% select(week, t) %>% unique()) %>% 
-  write_csv('data/sine_curve_cluster_preds.csv')
+  write_parquet('data/sine_curve_cluster_preds.parquet')
 
 #########
 # Fit GAM
@@ -75,7 +76,7 @@ params <- df.full %>%
 params %>% 
   select(modularity_class, tidied) %>% 
   unnest(tidied) %>% 
-  write_csv('data/gam_cluster_fits.csv')
+  write_parquet('data/gam_cluster_fits.parquet')
 
 params %>% 
   select(modularity_class, preds) %>% 
@@ -84,4 +85,4 @@ params %>%
   mutate(t = row_number()) %>% 
   ungroup() %>% 
   left_join(df.full %>% select(week, t) %>% unique()) %>% 
-  write_csv('data/gam_cluster_preds.csv')
+  write_parquet('data/gam_cluster_preds.parquet')

@@ -13,11 +13,11 @@ library(mgcv)
 ##################s
 # Read in data
 
-df.fips <- read_csv('data/state_and_county_fips_master.csv') %>% 
+df.fips <- read_parquet('data/state_and_county_fips_master.parquet') %>% 
   mutate(fips = if_else(fips ==02270, 02158, fips),
          fips = if_else(fips == 46113, 46102, fips))
 
-df.full <- read_csv('data/indoor_outdoor_ratio_unsmoothed.csv') %>% 
+df.full <- read_parquet('data/indoor_outdoor_ratio_unsmoothed.parquet') %>% 
   left_join(df.fips) %>% 
   filter(!is.na(fips), !is.na(state), !is.na(week)) %>% 
   group_by(fips) %>% 
@@ -45,7 +45,7 @@ params <- df.full %>%
 params %>% 
   select(modularity_class, tidied) %>% 
   unnest(tidied) %>% 
-  write_csv('data/sine_curve_cluster_fits.csv')
+  write_parquet('data/sine_curve_cluster_fits.parquet')
 
 params %>% 
   select(modularity_class, preds) %>% 
@@ -54,7 +54,7 @@ params %>%
   mutate(t = row_number()) %>% 
   ungroup() %>% 
   left_join(df.full %>% select(week, t) %>% unique()) %>% 
-  write_csv('data/sine_curve_cluster_preds.csv')
+  write_parquet('data/sine_curve_cluster_preds.parquet')
 
 #########
 # Fit GAM
@@ -72,7 +72,7 @@ params <- df.full %>%
 params %>% 
   select(modularity_class, tidied) %>% 
   unnest(tidied) %>% 
-  write_csv('data/gam_cluster_fits.csv')
+  write_parquet('data/gam_cluster_fits.parquet')
 
 params %>% 
   select(modularity_class, preds) %>% 
@@ -81,4 +81,4 @@ params %>%
   mutate(t = row_number()) %>% 
   ungroup() %>% 
   left_join(df.full %>% select(week, t) %>% unique()) %>% 
-  write_csv('data/gam_cluster_preds.csv')
+  write_parquet('data/gam_cluster_preds.parquet')

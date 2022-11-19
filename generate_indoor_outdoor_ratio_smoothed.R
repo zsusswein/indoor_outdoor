@@ -15,7 +15,7 @@ library(purrr)
 # Read in raw estimates
 
 
-df.r <- read_csv('data/indoor_outdoor_ratio_unsmoothed.csv')
+df.r <- read_parquet('data/indoor_outdoor_ratio_unsmoothed.parquet')
 
 
 df.r.raw.smooth <- df.r %>% 
@@ -46,6 +46,6 @@ df.full <- full_join(df.r.raw.smooth, df.r.weight.smooth)
 ############
 # Save smoothed estimates
 
-write_csv(df.full, 'data/indoor_outdoor_ratio_smoothed.csv')
+write_parquet(df.full, 'data/indoor_outdoor_ratio_smoothed.parquet')
 
 ###########

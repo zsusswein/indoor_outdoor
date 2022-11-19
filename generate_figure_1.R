@@ -3,13 +3,14 @@
 ################
 
 library(tidyverse)
+library(arrow)
 
 ################
 
-d <- read_csv('data/indoor_outdoor_ratio_unsmoothed.csv',
+d <- read_parquet('data/indoor_outdoor_ratio_unsmoothed.parquet',
               col_types = 'Tfdd')
 
-lat <- read_csv('~/Downloads/simplemaps_uscounties_basicv1.71/uscounties.csv') %>% 
+lat <- read_parquet('~/Downloads/simplemaps_uscounties_basicv1.71/uscounties.parquet') %>% 
   select(county_fips, lat) %>% 
   rename(fips = county_fips) %>% 
   mutate(fips = as.double(fips)) %>% 
