@@ -14,3 +14,5 @@ any standard data analysis package, like `pandas` and `pyarrow` or `{arrow}`.
 - Files from NOAA that describe county-level temperature and humidity over time.  
   These can be accessed 
   [here](https://psl.noaa.gov/data/gridded/data.narr.monolevel.html)
+- The parquet file listing county centroids in lat/long comes from [this 
+  site](/Users/zsusswein/Downloads/simplemaps_uscounties_basicv1/uscounties.csv)
