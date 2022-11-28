@@ -10,18 +10,20 @@ library(nlme)
 library(broom.mixed)
 library(arrow)
 
+here::i_am('code/generate_modularity_class_fits.R')
+
 ##################s
 # Read in data
 
-clusters <- read_parquet('../data/community_structure_2019_90_imputeddata_Nov10.parquet') %>% 
+clusters <- read_parquet('data/community_structure_2019_90_imputeddata_Nov10.parquet') %>% 
   rename(fips = node) %>% 
   mutate(fips = as.double(fips))
 
-df.fips <- read_parquet('../data/state_and_county_fips_master.parquet') %>% 
-  mutate(fips = if_else(fips ==02270, 02158, fips),
-         fips = if_else(fips == 46113, 46102, fips))
+df.fips <- read_parquet('data/state_and_county_fips_master.parquet') %>% 
+  mutate(fips = ifelse(fips == 02270, 02158, fips),
+         fips = ifelse(fips == 46113, 46102, fips))
 
-df.full <- read_parquet('../data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet') %>% 
+df.full <- read_parquet('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet') %>% 
   left_join(df.fips) %>% 
   left_join(clusters) %>% 
   filter(!is.na(fips), !is.na(state), !is.na(week), !is.na(modularity_class)) %>% 
@@ -35,6 +37,7 @@ df.full <- read_parquet('../data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED
 # Fit sine curve estimates 
 
 params <- df.full %>% 
+  mutate(r_raw = as.double(r_raw)) %>% 
   nest(data = -modularity_class) %>% 
   mutate(fit = map(data, ~ nls(r_raw ~ A*sin(omega*t+phi)+C, 
                                data=.x, 
@@ -48,7 +51,7 @@ params <- df.full %>%
 params %>% 
   select(modularity_class, tidied) %>% 
   unnest(tidied) %>% 
-  write_parquet('../data/sine_curve_cluster_fits.parquet')
+  write_parquet('data/sine_curve_cluster_fits.parquet')
 
 params %>% 
   select(modularity_class, preds) %>% 
@@ -57,5 +60,5 @@ params %>%
   mutate(t = row_number()) %>% 
   ungroup() %>% 
   left_join(df.full %>% select(week, t) %>% unique()) %>% 
-  write_parquet('../data/sine_curve_cluster_preds.parquet')
+  write_parquet('data/sine_curve_cluster_preds.parquet')
 

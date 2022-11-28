@@ -1,2 +1,2 @@
 #!/usr/bin/env Rscript
-install.packages('duckdb')
+install.packages(c('lme4', 'broom.mixed', 'here'))

@@ -5,7 +5,7 @@
 library(tidyverse)
 library(arrow)
 
-here::i_am('generate_figure_1.R')
+here::i_am('code/generate_figure_1.R')
 
 ################
 
@@ -19,7 +19,7 @@ lat <- read_parquet('data/uscounties.parquet') %>%
          fips = as.factor(fips))
 
 
-d %>% 
+p1 <- d %>% 
   filter(!is.na(week), !is.na(r_raw)) %>% 
   # fix the top value of r_raw at 4 for the colorscale in Fig. 1
   mutate(r_raw = if_else(r_raw > 4, 4, r_raw),
@@ -33,4 +33,4 @@ d %>%
   theme(axis.text.y=element_blank())
 
 
-ggsave('../figures/heatmap_draft.jpeg')
+ggsave('figures/heatmap_draft.jpeg', p1)

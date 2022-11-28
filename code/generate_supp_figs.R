@@ -6,12 +6,10 @@
 library(tidyverse)
 library(DBI)
 library(duckdb)
-library(gt)
 
-here::i_am('generate_supp_figs.R')
+here::i_am('code/generate_supp_figs.R')
 
 # Load in data ------------------------------------------------------------
-
 
 con = dbConnect(duckdb::duckdb(), dbdir=":memory:")
 
@@ -22,7 +20,7 @@ dbExecute(con,
           SELECT  
             node AS fips,
             modularity_class AS cluster_id
-          FROM '../data/fips_modulclass.parquet'
+          FROM 'data/fips_modulclass.parquet'
           ")
 
  dbExecute(con,
@@ -47,7 +45,7 @@ dbExecute(con,
            SELECT
             *,
             (r_raw - AVG(r_raw) OVER ()) / STDDEV_POP(r_raw) OVER () AS z_r_raw_original
-           FROM '../data/indoor_outdoor_ratio_unsmoothed.parquet'
+           FROM 'data/indoor_outdoor_ratio_unsmoothed.parquet'
            
             ) sigma
           INNER JOIN (
@@ -56,7 +54,7 @@ dbExecute(con,
               fips,
               date,
               temp
-            FROM '../data/county_level_temp_kelvin_2018_2019.parquet'
+            FROM 'data/county_level_temp_kelvin_2018_2019.parquet'
             
             ) temp
           ON sigma.week = temp.date 
@@ -68,7 +66,7 @@ dbExecute(con,
               date,
               SH
             FROM 
-              '../data/county_level_specific_humidity_2018_2019.parquet'
+              'data/county_level_specific_humidity_2018_2019.parquet'
               
           ) SH
           ON sigma.week = SH.date
@@ -91,14 +89,14 @@ dbExecute(con,
             (r_raw - AVG(r_raw) OVER ()) / STDDEV_POP(r_raw) OVER () AS z_r_raw,
             (temp - AVG(temp) OVER ()) / STDDEV_POP(temp) OVER () AS z_temp,
             (SH - AVG(SH) OVER ()) / STDDEV_POP(SH) OVER () AS z_SH
-          FROM '../data/indoor_outdoor_ratio_unsmoothed.parquet' sigma
+          FROM 'data/indoor_outdoor_ratio_unsmoothed.parquet' sigma
           INNER JOIN (
           
             SELECT 
               fips,
               date,
               temp
-            FROM '../data/county_level_temp_kelvin_2018_2019.parquet'
+            FROM 'data/county_level_temp_kelvin_2018_2019.parquet'
             
             ) temp
           ON sigma.week = temp.date 
@@ -110,7 +108,7 @@ dbExecute(con,
               date,
               SH
             FROM 
-              '../data/county_level_specific_humidity_2018_2019.parquet'
+              'data/county_level_specific_humidity_2018_2019.parquet'
               
           ) SH
           ON sigma.week = SH.date
@@ -140,8 +138,7 @@ summaries <- dbGetQuery(con, "SELECT * FROM summaries;")
 
 dbGetQuery(con, "SUMMARIZE summaries;") %>% 
   select(column_name, min, max, avg, std, q25, q50, q75) %>% 
-  filter(column_name != "fips") %>% 
-  gt()
+  filter(column_name != "fips")
 
 
 p1 <- df %>% 

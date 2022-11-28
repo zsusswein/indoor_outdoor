@@ -1,10 +1,15 @@
 version: "3.9"
 services:
   docker-generate-sigma:
+    image: indoor_outdoor
     build:
-      context: .
-      args:
-        - PASSWORD=rstudio
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8787:8787"
     volumes:
-      - "$PWD"
-    
+      - type: bind
+        source: "$PWD"
+        target: "/home/rstudio/"
+    environment:
+      - PASSWORD=rstudio

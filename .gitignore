@@ -40,3 +40,7 @@ vignettes/*.pdf
 
 Icon\r\r
 **/*.png
+
+# Docker stuff
+.local/
+.config/
