@@ -26,24 +26,3 @@ DESCRIBE (SELECT * FROM  'data/indoor_outdoor_ratio_unsmoothed.parquet')
             """)
 con.fetchall()
 
-
-con.execute("""
-
-            COPY (
-
-SELECT week :: DATE AS week,
-       fips :: VARCHAR AS fips,
-       TRY_CAST(r_raw AS DOUBLE) AS r_raw,
-       TRY_CAST(r_weighted_dwell AS DOUBLE) AS r_weighted_dwell
-FROM 'data/indoor_outdoor_ratio_unsmoothed.parquet'
-            ) 
-
-    TO 'data/indoor_outdoor_ratio_unsmoothed.parquet' (FORMAT PARQUET)
-
-            """)
-       
-con.execute("""
-
-SELECT * FROM 
-
-

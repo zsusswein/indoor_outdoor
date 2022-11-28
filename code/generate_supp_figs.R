@@ -45,7 +45,7 @@ dbExecute(con,
            SELECT
             *,
             (r_raw - AVG(r_raw) OVER ()) / STDDEV_POP(r_raw) OVER () AS z_r_raw_original
-           FROM 'data/indoor_outdoor_ratio_unsmoothed.parquet'
+           FROM 'data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERD.parquet'
            
             ) sigma
           INNER JOIN (
@@ -89,7 +89,7 @@ dbExecute(con,
             (r_raw - AVG(r_raw) OVER ()) / STDDEV_POP(r_raw) OVER () AS z_r_raw,
             (temp - AVG(temp) OVER ()) / STDDEV_POP(temp) OVER () AS z_temp,
             (SH - AVG(SH) OVER ()) / STDDEV_POP(SH) OVER () AS z_SH
-          FROM 'data/indoor_outdoor_ratio_unsmoothed.parquet' sigma
+          FROM 'data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet' sigma
           INNER JOIN (
           
             SELECT 
