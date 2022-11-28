@@ -11,7 +11,7 @@ library(arrow)
 ############
 # Set path to raw data from SafeGraph
 
-path <- '/Volumes/GoogleDrive/.shortcut-targets-by-id/12V72oXyWtm3AbaVo2SKmwnTsnzJvFRii/COVID_BansalLab/DATA/Safegraph_data/PROCESSED_DATA/weekly_patterns_county_indooroutdoor_April2021'
+path <- 'data/weekly_patterns_county_indooroutdoor_April2021'
 
 years <- seq(2018, 2021, 1)
 

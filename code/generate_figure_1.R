@@ -33,4 +33,4 @@ d %>%
   theme(axis.text.y=element_blank())
 
 
-ggsave('~/Desktop/heatmap_draft.jpeg')
+ggsave('../figures/heatmap_draft.jpeg')

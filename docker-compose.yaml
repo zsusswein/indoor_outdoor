@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  docker-generate-sigma:
+    build:
+      context: .
+      args:
+        - PASSWORD=rstudio
+    volumes:
+      - "$PWD"
+    
