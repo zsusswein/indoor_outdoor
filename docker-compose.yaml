@@ -1,12 +1,15 @@
 version: "3.9"
 services:
   docker-generate-sigma:
-    image: indoor_outdoor
+    image: zsusswein/indoor_outdoor:latest
     build:
       context: ./
       dockerfile: Dockerfile
     ports:
       - "8787:8787"
+    container_name: indoor_outdoor_main
+# Set up a bind mount to the working dir so any edits from within the container 
+# get saved to the files.
     volumes:
       - type: bind
         source: "$PWD"
