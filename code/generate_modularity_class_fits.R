@@ -60,5 +60,6 @@ params %>%
   mutate(t = row_number()) %>% 
   ungroup() %>% 
   left_join(df.full %>% select(week, t) %>% unique()) %>% 
+  mutate(pred_error = preds - r_raw) %>%
   write_parquet('data/sine_curve_cluster_preds.parquet')
 
