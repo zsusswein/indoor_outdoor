@@ -44,3 +44,6 @@ Icon\r\r
 # Docker stuff
 .local/
 .config/
+
+manuscript/*
+figures/*
