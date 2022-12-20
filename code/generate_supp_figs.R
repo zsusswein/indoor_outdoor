@@ -167,9 +167,9 @@ df <- dbGetQuery(con,
 SELECT
     s.week,
     c.clustid,
-    AVG(s.pred_error**2) AS rmse,
-    APPROX_QUANTILE(s.pred_error**2, 0.975) AS q975,
-    APPROX_QUANTILE(s.pred_error**2, 0.025) AS q025)
+    AVG(SQRT(s.pred_error**2)) AS rmse,
+    APPROX_QUANTILE(SQRT(POW(s.pred_error, 2)), 0.975) AS q975,
+    APPROX_QUANTILE(SQRT(POW(s.pred_error, 2)), 0.025) AS q025
 FROM read_csv_auto('data/sine_curve_cluster_preds.parquet') s
 JOIN clustid c
 ON c.fips = s.fips
