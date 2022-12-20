@@ -12,7 +12,7 @@ services:
 # get saved to the files.
     volumes:
       - type: bind
-        source: "$PWD"
-        target: "/home/rstudio/"
+        source: ./
+        target: "/home/rstudio"
     environment:
       - PASSWORD=rstudio
