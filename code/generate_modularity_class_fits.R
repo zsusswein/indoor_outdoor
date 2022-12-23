@@ -59,7 +59,7 @@ params %>%
   group_by(modularity_class) %>% 
   mutate(t = row_number()) %>% 
   ungroup() %>% 
-  left_join(df.full %>% select(week, t) %>% unique()) %>% 
+  left_join(df.full %>% select(week, t, r_raw) %>% unique()) %>% 
   mutate(pred_error = preds - r_raw) %>%
   write_parquet('data/sine_curve_cluster_preds.parquet')
 

@@ -6,6 +6,7 @@
 library(tidyverse)
 library(DBI)
 library(duckdb)
+library(arrow)
 
 here::i_am('code/generate_supp_figs.R')
 
@@ -165,32 +166,50 @@ ggsave('figures/S1.png', p1)
 df <- dbGetQuery(con, 
                  "
 SELECT
-    s.week,
-    c.clustid,
-    AVG(SQRT(s.pred_error**2)) AS rmse,
+    chr(modularity_class::integer + 65) AS clustid,
+    week,
+    AVG(SQRT(pow(s.pred_error, 2))) AS rmse,
     APPROX_QUANTILE(SQRT(POW(s.pred_error, 2)), 0.975) AS q975,
     APPROX_QUANTILE(SQRT(POW(s.pred_error, 2)), 0.025) AS q025
-FROM read_csv_auto('data/sine_curve_cluster_preds.parquet') s
-JOIN clustid c
-ON c.fips = s.fips
-GROUP BY c.clustid
+FROM 'data/sine_curve_cluster_preds.parquet' s
+GROUP BY 1, 2
 
 ")
 
-p <- ggplot(df, aes(week, rmse, group = clustid, color = as.factor(clustid))+
-        geom_line()+
+df
+
+p <- ggplot(df, aes(week, rmse, group = clustid, color = as.factor(clustid)))+
         geom_ribbon(aes(x = week,
                         ymin = q025,
                         ymax = q975,
                         fill = as.factor(clustid),
-                        group = clustid))+
+                        group = clustid), alpha = 0.2)+
+        geom_line()+
         theme_bw()+
         labs(x = element_blank(),
              y = 'Mean RMSE of sine curve fit',
              color = 'Cluster',
-             fill = 'Cluster')
+             fill = 'Cluster')+
+        facet_wrap(~clustid)
 
 ggsave('figures/sine_curve_rmse.png', p)
+
+p <- ggplot(df %>% filter(clustid %in% c('A', 'B')), aes(week, rmse, group = clustid, color = as.factor(clustid)))+
+        geom_ribbon(aes(x = week,
+                        ymin = q025,
+                        ymax = q975,
+                        fill = as.factor(clustid),
+                        group = clustid), alpha = 0.2)+
+        geom_line()+
+        theme_bw()+
+        labs(x = element_blank(),
+             y = 'Mean RMSE of sine curve fit',
+             color = 'Cluster',
+             fill = 'Cluster')+
+        facet_wrap(~clustid)
+
+ggsave('figures/sine_curve_rmse_north_south_only.png', p)
+
 
 
 # Check the robustness of the estimates to the unclear locations
