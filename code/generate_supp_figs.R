@@ -7,6 +7,7 @@ library(tidyverse)
 library(DBI)
 library(duckdb)
 library(arrow)
+library(lubridate)
 
 here::i_am('code/generate_supp_figs.R')
 
@@ -172,6 +173,7 @@ SELECT
     APPROX_QUANTILE(SQRT(POW(s.pred_error, 2)), 0.975) AS q975,
     APPROX_QUANTILE(SQRT(POW(s.pred_error, 2)), 0.025) AS q025
 FROM 'data/sine_curve_cluster_preds.parquet' s
+WHERE EXTRACT('year' FROM week) < 2020
 GROUP BY 1, 2
 
 ")
@@ -185,6 +187,7 @@ p <- ggplot(df, aes(week, rmse, group = clustid, color = as.factor(clustid)))+
                         fill = as.factor(clustid),
                         group = clustid), alpha = 0.2)+
         geom_line()+
+        annotate(xmin = as.POSIXct(ymd('2019-05-01')), xmax = as.POSIXct(ymd('2019-9-1')), ymin = -Inf, ymax = Inf, geom = 'rect', alpha = 0.2)+
         theme_bw()+
         labs(x = element_blank(),
              y = 'Mean RMSE of sine curve fit',
@@ -194,19 +197,18 @@ p <- ggplot(df, aes(week, rmse, group = clustid, color = as.factor(clustid)))+
 
 ggsave('figures/sine_curve_rmse.png', p)
 
-p <- ggplot(df %>% filter(clustid %in% c('A', 'B')), aes(week, rmse, group = clustid, color = as.factor(clustid)))+
-        geom_ribbon(aes(x = week,
-                        ymin = q025,
-                        ymax = q975,
-                        fill = as.factor(clustid),
-                        group = clustid), alpha = 0.2)+
+p <- df %>% 
+    filter(clustid %in% c('A', 'B')) %>%
+    mutate(clustid = if_else(clustid == 'A', 'Southern', 'Northern')) %>%
+    ggplot( aes(week, rmse, group = clustid, color = as.factor(clustid)),
+           )+
         geom_line()+
+        annotate(xmin = as.POSIXct(ymd('2019-05-01')), xmax = as.POSIXct(ymd('2019-9-1')), ymin = -Inf, ymax = Inf, geom = 'rect', alpha = 0.2)+
         theme_bw()+
         labs(x = element_blank(),
              y = 'Mean RMSE of sine curve fit',
-             color = 'Cluster',
-             fill = 'Cluster')+
-        facet_wrap(~clustid)
+             color = element_blank(),
+             fill = element_blank())
 
 ggsave('figures/sine_curve_rmse_north_south_only.png', p)
 
@@ -241,3 +243,6 @@ ggplot(df)+
     theme_bw()
 
 ggsave('figures/sigma_outdoor_and_uncertain_combined.png', p)
+
+
+dbDisconnect(con, shutdown = TRUE)

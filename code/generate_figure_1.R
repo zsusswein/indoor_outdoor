@@ -9,7 +9,7 @@ here::i_am('code/generate_figure_1.R')
 
 ################
 
-d <- read_parquet('indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet')
+d <- read_parquet('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.parquet')
 
 lat <- read_parquet('data/uscounties.parquet') %>% 
   select(county_fips, lat) %>% 
@@ -32,5 +32,6 @@ p1 <- d %>%
   labs(x='', y = 'County', fill = 'Phi')+
   theme(axis.text.y=element_blank())
 
+####################
 
 ggsave('figures/heatmap_draft.jpeg', p1)
