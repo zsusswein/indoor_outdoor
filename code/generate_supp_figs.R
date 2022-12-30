@@ -185,9 +185,9 @@ p <- df %>%
     select(-r_raw, -temp, -SH) %>%
     pivot_longer(c('z_temp', 'z_SH', 'z_r_raw')) %>%
     mutate(cluster_id = case_when(
-                                  cluster_id == 'B' ~ 'Southern',
-                                  cluster_id == 'A' ~ 'Northern',
-                                  cluster_id == 'C' ~ 'Tourism'),
+                                  cluster_id == '0' ~ 'Southern',
+                                  cluster_id == '1' ~ 'Northern',
+                                  cluster_id == '2' ~ 'Tourism'),
            name = case_when(
 
                             name == 'z_SH' ~ 'Specific Humidity',
