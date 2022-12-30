@@ -8,6 +8,7 @@ library(DBI)
 library(duckdb)
 library(arrow)
 library(lubridate)
+library(gt)
 
 here::i_am('code/generate_supp_figs.R')
 
@@ -23,8 +24,37 @@ dbExecute(con,
           SELECT  
             node AS fips,
             modularity_class AS cluster_id
-          FROM 'data/fips_modulclass.parquet'
-          ")
+          FROM 'data/fips_modulclass.parquet'")
+
+# Plot the differences between clusters
+df <- read_parquet('data/sine_curve_cluster_fits.parquet') %>%
+    select(modularity_class, term, estimate) %>%
+    filter(modularity_class < 2) %>%
+    mutate(modularity_class = case_when(
+            modularity_class == 0 ~ 'Southern',
+            modularity_class == 1 ~ 'Northern'),
+          term = case_when(
+            term == 'a' ~ "Amplitude",
+            term == 'omega' ~ "Period",
+            term == 'phi' ~ 'Phase')) %>%
+    filter(!is.na(term))
+
+p <- ggplot(df, aes(modularity_class, estimate))+
+    geom_col()+
+    facet_wrap(~term, scale = 'free')+
+    theme_bw()+
+    labs(x = element_blank(),
+         y = 'Fitted value (note independent Y axes)')
+
+ggsave('figures/sine_params.png', p)
+
+df %>%
+    pivot_wider(names_from = modularity_class, values_from = estimate) %>%
+    mutate(diff = Northern - Southern) %>%
+    gt() %>%
+    tab_header('Estimates and cluster differences') %>%
+    gtsave(filename = 'diff_table.html', 'figures/')
+
 
 # Join temp, specific humidity, and indoor/outdoor metric ("sigma") together and
 # z-score each so they can be directly compared (i.e., all centered on 0 and deviations
@@ -151,6 +181,31 @@ dbGetQuery(con, "SUMMARIZE summaries;") %>%
   select(column_name, min, max, avg, std, q25, q50, q75) %>% 
   filter(column_name != "fips")
 
+p <- df %>%
+    select(-r_raw, -temp, -SH) %>%
+    pivot_longer(c('z_temp', 'z_SH', 'z_r_raw')) %>%
+    mutate(cluster_id = case_when(
+                                  cluster_id == 'B' ~ 'Southern',
+                                  cluster_id == 'A' ~ 'Northern',
+                                  cluster_id == 'C' ~ 'Tourism'),
+           name = case_when(
+
+                            name == 'z_SH' ~ 'Specific Humidity',
+                            name == 'z_temp' ~ 'Temperature',
+                            name == 'z_r_raw' ~ 'Sigma')) %>%
+    filter(!is.na(cluster_id)) %>%
+    group_by (week, cluster_id, name) %>%
+    summarize(mean = mean(value, na.rm = T)) %>%
+    ggplot(aes(week, mean, color = name, group = name))+
+    geom_line()+
+    facet_wrap(~cluster_id)+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    labs(x = element_blank(),
+         y = 'Mean of Z scored value',
+         color = 'Variable type')
+
+ggsave('figures/environmental_vars.png', p, width = 10, height = 8)
 
 p1 <- df %>% 
   ggplot()+
@@ -162,7 +217,6 @@ p1 <- df %>%
        color = 'Cluster ID')
 
 ggsave('figures/S1.png', p1)
-  
 
 df <- dbGetQuery(con, 
                  "
@@ -204,6 +258,7 @@ p <- df %>%
            )+
         geom_line()+
         annotate(xmin = as.POSIXct(ymd('2019-05-01')), xmax = as.POSIXct(ymd('2019-9-1')), ymin = -Inf, ymax = Inf, geom = 'rect', alpha = 0.2)+
+        annotate(xmin = as.POSIXct(ymd('2018-05-01')), xmax = as.POSIXct(ymd('2018-9-1')), ymin = -Inf, ymax = Inf, geom = 'rect', alpha = 0.2)+
         theme_bw()+
         labs(x = element_blank(),
              y = 'Mean RMSE of sine curve fit',
@@ -231,18 +286,4 @@ p <- ggplot(df)+
 
 ggsave('figures/sigma_indoor_and_uncertain_combined.png', p)
 
-ggplot(df)+
-    geom_line(aes(date, 
-               outdoor_with_unclear_diff,
-               group = countyFIPS),
-              alpha = 0.1)+
-    geom_smooth(aes(date, 
-               outdoor_with_unclear_diff),
-                se=F)+
-    geom_hline(yintercept = 0, color = 'red')+
-    theme_bw()
-
-ggsave('figures/sigma_outdoor_and_uncertain_combined.png', p)
-
-
-dbDisconnect(con, shutdown = TRUE)
+duckdb::duckdb_shutdown(drv)
