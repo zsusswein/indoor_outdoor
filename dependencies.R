@@ -1,2 +1,2 @@
 #!/usr/bin/env Rscript
-install.packages(c('lme4', 'broom.mixed', 'here'))
+install.packages(c('lme4', 'broom.mixed', 'here', 'gt'))
