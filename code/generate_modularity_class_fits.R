@@ -39,9 +39,9 @@ df.full <- read_parquet('data/indoor_outdoor_ratio_unsmoothed_WITHIN_CENTERED.pa
 params <- df.full %>% 
   mutate(r_raw = as.double(r_raw)) %>% 
   nest(data = -modularity_class) %>% 
-  mutate(fit = map(data, ~ nls(r_raw ~ A*sin(omega*t+phi)+C, 
+  mutate(fit = map(data, ~ nls(r_raw ~ a*sin(omega*(t+phi))+c, 
                                data=.x, 
-                               start=c(A=.25,omega=.127,phi=1,C=.98))),
+                               start=c(a=.25,omega=.127,phi=1,c=.98))),
          tidied = map(fit, tidy),
          preds = map(fit, predict, newdata = tibble(t=1:182)))
 
