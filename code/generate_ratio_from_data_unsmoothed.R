@@ -11,26 +11,7 @@ library(arrow)
 ############
 # Set path to raw data from SafeGraph
 
-path <- 'data/weekly_patterns_county_indooroutdoor_April2021'
-
-years <- seq(2018, 2021, 1)
-
-cols <- cols_only(countyFIPS = col_integer(),
-                  date = col_datetime(),
-                  raw_visitor_counts_Indoors = col_double(),
-                  raw_visitor_counts_Outdoor = col_double(),
-                  outdoor_max_2019 = col_double(),
-                  indoor_max_2019 = col_double(),
-                  median_dwell_Indoors = col_double(),
-                  median_dwell_Outdoor = col_double())
-
-############
-# Set up pipeline to read in and process data
-
-collapse_to_county_week <- function(year, path){
-  
-  df <- read_csv(paste0(path, '/weekly_patterns_countylevel_summarized', year, '.csv'),
-                 col_types = cols) %>% 
+df <- read_parquet('data/mobility_summarized.parquet') %>%
     rename(fips = countyFIPS) %>% 
     mutate(week = round_date(date, unit = 'week')) %>% 
     group_by(week, fips) %>% 
@@ -44,26 +25,9 @@ collapse_to_county_week <- function(year, path){
     group_by(fips) %>% 
     fill(indoor_max_2019, outdoor_max_2019, .direction = 'updown') %>% 
     ungroup()
-  
-  return(df)
-}
+ 
 
-################
-# Read in data
-
-df <- tibble(fips = integer(),
-                  week = POSIXct(),
-                  raw_visitor_counts_Indoors = double(),
-                  raw_visitor_counts_Outdoor = double(),
-                  outdoor_max_2019 = double(),
-                  indoor_max_2019 = double())
-
-for (year in years){
-  
-  df <- full_join(df, collapse_to_county_week(year, path))
-}
-
-df.fips <- read_csv('data/state_and_county_fips_master.csv')
+df.fips <- read_parquet('data/state_and_county_fips_master.parquet')
 
 # county-neighbor pairs, pairs exists both i -> j and j -> i
 df.neighbors <- read_csv('data/county_neighbors_fips.txt',
